@@ -74,7 +74,10 @@ class git_parser:
                      page_url = link.split(',')[1].split(';')[0].split('<')[1].split('>')[0]
                      # page_url2 = link.split(';')[0][1:-1] DOESNT WORK :C WHY :(
                      # first_commit2 =requests.get(page_url2,auth=self.auth).json() 
-                     first_commit = requests.get(page_url,auth=self.auth,timeout=1000)
+                     try:
+                        first_commit = requests.get(page_url,auth=self.auth,timeout=1000)
+                     except:
+                        pass
                 first_commit=first_commit.json()
                 first_sha=first_commit[-1]['sha']
                 url_compare_sha = f'https://api.github.com/repos/{self.user_name}/{rep}/compare/{first_sha}...{last_sha}'
@@ -106,10 +109,10 @@ class git_parser:
 
 
 def main():
-    token = ''
+    token = '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'
     nickname = 'romntabk'
     git_p = git_parser(token)
-    data= git_p.get_statistic('romntabk')
+    data= git_p.get_statistic('mist-leet')
     print(data)
 
 
