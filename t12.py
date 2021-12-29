@@ -28,7 +28,7 @@ class git_parser:
         self.data = []
         self.auth=''
         self.uncheched_branches={}
-        if token == '':
+        if len(token) < 5:
             self.git = Github()
         else:      
             self.auth = (nickname, token)
@@ -49,9 +49,13 @@ class git_parser:
         arr=[]
         self.user_name=name
         for rep in user.get_repos():
-            branches = requests.get(rep.branches_url[:-9],auth=self.auth)
-            rep_data=(rep.name,self._parse_branches(branches.json(),rep.name))
-            self.data.append(rep_data)
+            try:
+                branches = requests.get(rep.branches_url[:-9],auth=self.auth,timeout=1000)
+                rep_data=(rep.name,self._parse_branches(branches.json(),rep.name))
+                self.data.append(rep_data)
+            except:
+                pass
+            
         return self.data#, f'LOG: uncheched_branches = {self.uncheched_branches}'
 
 
@@ -64,17 +68,17 @@ class git_parser:
                 print(f'branch:', branche['name'])
                 last_sha = branche['commit']['sha'] 
                 url_first_commit =  f'https://api.github.com/repos/{self.user_name}/{rep}/commits'
-                first_commit = requests.get(url_first_commit, auth=self.auth)
+                first_commit = requests.get(url_first_commit, auth=self.auth,timeout=1000)
                 link =first_commit.headers.get('Link')
                 if link:
                      page_url = link.split(',')[1].split(';')[0].split('<')[1].split('>')[0]
                      # page_url2 = link.split(';')[0][1:-1] DOESNT WORK :C WHY :(
                      # first_commit2 =requests.get(page_url2,auth=self.auth).json() 
-                     first_commit = requests.get(page_url,auth=self.auth)
+                     first_commit = requests.get(page_url,auth=self.auth,timeout=1000)
                 first_commit=first_commit.json()
                 first_sha=first_commit[-1]['sha']
                 url_compare_sha = f'https://api.github.com/repos/{self.user_name}/{rep}/compare/{first_sha}...{last_sha}'
-                compare_response = requests.get(url_compare_sha, auth=self.auth).json()
+                compare_response = requests.get(url_compare_sha, auth=self.auth,timeout=1000).json()
                 self._parse_branche(compare_response,dict_)
             except:
                 if rep in self.uncheched_branches:
@@ -87,7 +91,7 @@ class git_parser:
     def _parse_branche(self,compare,dict_):
         bonus_create=1
         for i in compare['commits']:
-            if type(i['author']) is type(dict) :
+            if isinstance(i.get('author'), dict) :
                 nick =i['author']['login']
             else:
                 nick = i['commit']['author']['name']
