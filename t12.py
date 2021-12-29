@@ -109,7 +109,7 @@ class git_parser:
 
 
 def main():
-    token = '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'
+    token = ''
     nickname = 'romntabk'
     git_p = git_parser(token)
     data= git_p.get_statistic('mist-leet')
