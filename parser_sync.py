@@ -46,7 +46,6 @@ class git_parser:
         returntype[       str     , {  str  :             int            , ...}]
         '''
         user = self.git.get_user(name)
-        arr=[]
         self.user_name=name
         for rep in user.get_repos():
             try:
@@ -54,8 +53,7 @@ class git_parser:
                 rep_data=(rep.name,self._parse_branches(branches.json(),rep.name))
                 self.data.append(rep_data)
             except:
-                pass
-            
+                pass 
         return self.data#, f'LOG: uncheched_branches = {self.uncheched_branches}'
 
 
@@ -71,19 +69,18 @@ class git_parser:
                 first_commit = requests.get(url_first_commit, auth=self.auth,timeout=1000)
                 link =first_commit.headers.get('Link')
                 if link:
-                     page_url = link.split(',')[1].split(';')[0].split('<')[1].split('>')[0]
-                     # page_url2 = link.split(';')[0][1:-1] DOESNT WORK :C WHY :(
-                     # first_commit2 =requests.get(page_url2,auth=self.auth).json() 
-                     try:
+                    page_url = link.split(',')[1].split(';')[0].split('<')[1].split('>')[0]
+                    try:
                         first_commit = requests.get(page_url,auth=self.auth,timeout=1000)
-                     except:
+                    except:
                         pass
                 first_commit=first_commit.json()
                 first_sha=first_commit[-1]['sha']
                 url_compare_sha = f'https://api.github.com/repos/{self.user_name}/{rep}/compare/{first_sha}...{last_sha}'
                 compare_response = requests.get(url_compare_sha, auth=self.auth,timeout=1000).json()
                 self._parse_branche(compare_response,dict_)
-            except:
+            except Exception as e:
+                # print(e)
                 if rep in self.uncheched_branches:
                     self.uncheched_branches[rep]+=1
                 else:
@@ -92,6 +89,7 @@ class git_parser:
     
 
     def _parse_branche(self,compare,dict_):
+
         bonus_create=1
         for i in compare['commits']:
             if isinstance(i.get('author'), dict) :
@@ -109,12 +107,12 @@ class git_parser:
 
 
 def main():
-    token = ''
-    nickname = 'romntabk'
+    token = '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'
+    nickname = 'mist-leet'
     git_p = git_parser(token)
-    data= git_p.get_statistic('mist-leet')
+    data= git_p.get_statistic(nickname)
     print(data)
 
 
 if __name__ == '__main__':
-    main()
+    main()  

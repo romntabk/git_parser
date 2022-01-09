@@ -4,8 +4,12 @@ import plotly.graph_objs as go
 import numpy as np
 from plotly.subplots import make_subplots
 import pandas as pd
-from t12 import git_parser
+from parser_sync import git_parser as git_parser_sync
+from parser_async import git_parser as git_parser_async
 import argparse
+import asyncio
+import time
+import aiohttp
 
 def pie_data(df,series,year='-1'):
 	if year=='-1':
@@ -40,14 +44,21 @@ def draw(data):
 
 def main():
 	parser=argparse.ArgumentParser()
-	parser.add_argument('token')
-	parser.add_argument('login')
+	parser.add_argument('token', help = 'github token for bigger limit for requests')
+	parser.add_argument('login',help='which account to parse')
+	parser.add_argument('mode',help='sync / async mode')
 	args=vars(parser.parse_args())
 	token = args.get('token')
 	login = args.get('login')
-	git_p = git_parser(token)
-	data= git_p.get_statistic(login)
+	mode = args.get('mode')
+	time_ = time.time()
+	if mode == 'sync':
+		git_p = git_parser_sync(token)
+		data= git_p.get_statistic(login)
+	else:
+		git_p = git_parser_async(token)
+		data = asyncio.get_event_loop().run_until_complete(git_p.get_statistic(login))
 	draw(data)
-
+	print(f' --- Total exectuion time : { time.time() - time_}s')
 if __name__ =='__main__':
 	main()
